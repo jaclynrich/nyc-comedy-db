@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 
 #%% This gets all of the show information for one date
 
-url = 'http://www.comedycellar.com/line-up/?_date=%0D%0A%09%09%09%09%09%09%091499817600'
+url = 'http://www.comedycellar.com/line-up/?_date=%0D%0A%09%09%09%09%09%09%091509926400'
 html = urllib.request.urlopen(url).read()
 soup = BeautifulSoup(html, "html.parser")
 
@@ -49,3 +49,14 @@ for gig in soup.findAll('div', class_='show'):
     shows.append(show)
 
 # Include show name, location, comedian descriptions
+
+# Change how stored - make it a dictionary of dictionaries
+# with each day, date tuple as the key?
+
+#%% Get date options from dropdown
+
+date_options = []
+options = soup.find('select', class_='dropkick filter-lineup-shows')
+for option in options.findAll('option'):
+    date_options.append(option.text.strip())
+
