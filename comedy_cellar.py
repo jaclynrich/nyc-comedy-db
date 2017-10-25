@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Extract show information for the Comedy Cellar
+
 Created on Sat Sep 23 12:26:59 2017
 
 @author: Jackie
@@ -10,12 +12,15 @@ import urllib.request, urllib.parse, urllib.error
 import requests
 from bs4 import BeautifulSoup
 
-#%% This gets all of the show information for one date
+#%% Gets all of the show information for one date
 
 url = 'http://www.comedycellar.com/line-up/'
 html = urllib.request.urlopen(url).read()
 soup = BeautifulSoup(html, "html.parser")
 
+shows = []
+
+# Possible locations for shows
 places = ['MacDougal Street', 'Village Underground', 'Fat Black Pussycat', 'Fat Black Pussycat Lounge']
 
 # This block will be the same for all shows
@@ -25,7 +30,6 @@ day = day_date[:ix_space]
 date = day_date[ix_space+1:]
 link = soup.find('a', class_='make-comedy-reservation-link')['href']
 
-shows = []
 for gig in soup.findAll('div', class_='show'):
     show = {}
     show['day'] = day
@@ -36,12 +40,14 @@ for gig in soup.findAll('div', class_='show'):
     time, location = time_location.split('|')
     show['time'] = time.strip()[:-5]
     
+    # If location has pm in it it has a show name with the time
     pm_ix = location.find('pm')
     if pm_ix > 0:
         show['show_name'] = location.strip()[pm_ix+2:]
     else:
         show['location'] = location.strip()
     
+    # Sometimes the location is only present in the show note
     note = gig.find('p', class_='show-note')
     if note is not None:
         note = note.text.strip()
@@ -51,8 +57,7 @@ for gig in soup.findAll('div', class_='show'):
             show['location'] = matching[0]
             print(show['location'])
     
-    # If the show location is not stated
-    # then it is assumed to be MacDougal Street
+    # If the location is not stated, then it is assumed to be MacDougal Street
     if show.get('location') == None:
         show['location'] = 'MacDougal Street'
         
@@ -67,11 +72,6 @@ for gig in soup.findAll('div', class_='show'):
             show['performers'].append(p)
             
     shows.append(show)
-
-# Include comedian descriptions?
-
-# Change how stored - make it a dictionary of dictionaries
-# with each day, date tuple as the key?
 
 #%% Encapsulate getting data for one page of data into a function
 
@@ -137,13 +137,13 @@ def extract_data(url):
 # Test function out for one page
 shows_list = extract_data(url)
 
-#%% Get date options from dropdown
+#%% Get date options from dropdown menu
 
 date_options = []
 value_options = []
 options = soup.find('select', class_='dropkick filter-lineup-shows')
 for option in options.findAll('option'):
-    date_options.append(option.text.strip()) # just in case need it
+    date_options.append(option.text.strip()) # just in case it is needed
     value_options.append(option['value'].strip())
 
 #%% Get all of the shows for all of the dates available on the site
