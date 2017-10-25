@@ -104,6 +104,16 @@ date_options = []
 value_options = []
 options = soup.find('select', class_='dropkick filter-lineup-shows')
 for option in options.findAll('option'):
-    date_options.append(option.text.strip())
+    date_options.append(option.text.strip()) # just in case need it
     value_options.append(option['value'].strip())
-    
+
+#%% Get all of the shows for all of the dates available on the site
+
+full_show_list = []
+base_url = 'http://www.comedycellar.com/line-up/?_'
+
+for value in value_options:
+    url = base_url + urllib.parse.urlencode({'date': value})
+    r = requests.get(url)
+    full_show_list.append(extract_data(url)) 
+
