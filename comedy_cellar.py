@@ -31,11 +31,11 @@ def extract_data(url):
         show = {}
         show['day'] = day
         show['date'] = date
-        show['reservation_link'] = link
+        show['ticket_link'] = link
             
         time_location = gig.find('span', class_='show-time closed').text.strip()
         time, location = time_location.split('|')
-        show['time'] = time.strip()[:-5]
+        show['time'] = {'show_time': time.strip()[:-5]}
         
         pm_ix = location.find('pm')
         if pm_ix > 0:
