@@ -57,17 +57,18 @@ def extract_data(url):
         if show.get('location') == None:
             show['location'] = 'MacDougal Street'
             
-        show['performers'] = []
-        
+        show['acts'] = []
+        performers = []
         for performer in gig.findAll('span', class_='comedian-block-desc-name'):
             p = ' '.join(performer.getText().strip().split())
             if(p.startswith('MC')):
                 mc_ix = p.find(':')
-                show['MC'] = p[mc_ix+2:]
+                show['acts'].append({'MC': p[mc_ix+2:]})
             else:
-                show['performers'].append(p)
+                performers.append(p)
+        show['acts'].append({'performers': performers})
                 
-        shows.append(show)    
+        shows.append(show)
     return shows
 
 # Test function out for one page
