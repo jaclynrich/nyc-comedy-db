@@ -17,7 +17,7 @@ def extract_data(url):
     html = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(html, "html.parser")
     
-    places = ['MacDougal Street', 'Village Underground', 'Fat Black Pussycat', 'Fat Black Pussycat Lounge']
+    places = ['MacDougal Street', 'Village Underground', 'Fat Black Pussycat']
     
     # This block will be the same for all shows
     day_date = soup.find('div', class_='show-search-title').text.strip()
@@ -41,8 +41,10 @@ def extract_data(url):
         if pm_ix > 0:
             show['show_name'] = location.strip()[pm_ix+2:]
         else:
-            show['location'] = location.strip()
+            if location.strip() in places: #only assign location if it is places
+                show['location'] = location.strip()
         
+        # Look for possible location name in show note
         note = gig.find('p', class_='show-note')
         if note is not None:
             note = note.text.strip()
@@ -50,12 +52,15 @@ def extract_data(url):
             matching = [place for place in places if place in note]
             if len(matching) == 1:
                 show['location'] = matching[0]
-                print(show['location'])
         
         # If the show location is not stated
         # then it is assumed to be MacDougal Street
         if show.get('location') == None:
             show['location'] = 'MacDougal Street'
+            
+        # Fix show locations that do not include the full name
+        if show.get('location') == 'Fat Black Pussycat':
+            show['location'] = 'Fat Black Pussycat Lounge'
             
         show['acts'] = []
         performers = []
