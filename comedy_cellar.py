@@ -81,8 +81,12 @@ def extract_data(url):
         
         time_location = gig.find('span', class_='show-time closed').text.strip()
         time, location = time_location.split('|')
-        show['time'] = {'show_time': time.strip()[:-5]}
+        show_time = time.strip()[:-5]
         
+        # Some times are incorrectly marked as having hour:01
+        show_time = re.sub(':01', ':00', show_time)
+        show['time'] = {'show_time': show_time}
+
         pm_ix = location.find('pm')
         if pm_ix > 0:
             show['show_name'] = location.strip()[pm_ix+2:]
