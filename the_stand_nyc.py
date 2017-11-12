@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
 import re
-from comedian_list import comedian_list 
+from get_comedian_list import comedian_list 
 
 #%%
 
@@ -51,9 +51,9 @@ for show in shows:
     info['acts'] = []
     
     # Find headliners from show_title
-    for comedian in comedian_list:
-        if comedian in info['show_title']:
-            info['acts'].append({'name': comedian, 'type': 'headliner'})
+    in_list = [comedian for comedian in comedian_list if comedian in info['show_title']]
+    for comedian in in_list:
+        info['acts'].append({'name': comedian, 'type': 'headliner'})    
                    
     # Get support acts for those that have them
     try:
