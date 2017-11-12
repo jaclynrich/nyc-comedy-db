@@ -125,9 +125,12 @@ def extract_data(url):
         try:
             if price_times[time] > -1:
                 show['price'] = price_times[time]
-        # LOOK FOR PRICE IN SHOW NOTE?
+        # Look for show in show_note
         except KeyError:
-            pass
+            if note is not None:
+                m = re.search(r'[$](\d+)', show['show_note'])
+                if m:
+                    show['price'] = m.group()[1:]
         
         shows.append(show)
         show_ix += 1
