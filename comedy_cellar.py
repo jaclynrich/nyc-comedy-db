@@ -85,11 +85,12 @@ def extract_data(url):
         
         # Some times are incorrectly marked as having hour:01
         show_time = re.sub(':01', ':00', show_time)
-        show['time'] = {'show_time': show_time}
+        show['time'] = {}
+        show['time']['show_time'] = show_time
 
         pm_ix = location.find('pm')
         if pm_ix > 0:
-            show['show_name'] = location.strip()[pm_ix+2:]
+            show['show_title'] = location.strip()[pm_ix+2:]
         else:
             if location.strip() in places: #only assign location if it is places
                 show['location'] = location.strip()

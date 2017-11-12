@@ -47,12 +47,12 @@ for show in shows:
     
     details = show.find('div', class_='list-view-details vevent')
     
-    info['show_name'] = details.find('h1').find('a').text
+    info['show_title'] = details.find('h1').find('a').text
     info['acts'] = []
     
-    # Find headliners from show_name
+    # Find headliners from show_title
     for comedian in comedian_list:
-        if comedian in info['show_name']:
+        if comedian in info['show_title']:
             info['acts'].append({'name': comedian, 'type': 'headliner'})
                    
     # Get support acts for those that have them
@@ -72,19 +72,19 @@ for show in shows:
     
     # All shows have a show_time, only some have a door_time
     times = details.find('h2', class_='times')
-    info['time'] = []
+    info['time'] = {}
     try:
         door_time = times.find('span', class_='doors').text
-        info['time'].append({'door_time': door_time[(door_time.find(':') + 1):].strip()})
+        info['time']['door_time'] = door_time[(door_time.find(':') + 1):].strip()
     except AttributeError:
-        info['time'].append({'door_time:': None})
-    
+        pass
+        
     show_time = times.find('span', class_='start dtstart').contents[1]
     colon_ix = show_time.find('Show:')
     if colon_ix >= 0:
-        info['time'].append({'show_time': show_time[(colon_ix + 6):].strip()})
+        info['time']['show_time'] = show_time[(colon_ix + 6):].strip()
     else:
-        info['time'].append({'show_time': show_time.strip()})
+        info['time']['show_time'] = show_time.strip()
         
     info['show_note'] = details.find('h2', class_='age-restriction over-16').text.strip()
     
