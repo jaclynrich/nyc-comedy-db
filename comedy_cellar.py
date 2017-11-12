@@ -32,7 +32,7 @@ def extract_data(url):
         show['day'] = day
         show['date'] = date
         show['ticket_link'] = link
-            
+        
         time_location = gig.find('span', class_='show-time closed').text.strip()
         time, location = time_location.split('|')
         show['time'] = {'show_time': time.strip()[:-5]}
@@ -63,28 +63,28 @@ def extract_data(url):
             show['location'] = 'Fat Black Pussycat Lounge'
             
         show['acts'] = []
-        performers = []
         for performer in gig.findAll('span', class_='comedian-block-desc-name'):
             p = ' '.join(performer.getText().strip().split())
             if(p.startswith('MC')):
                 mc_ix = p.find(':')
-                show['acts'].append({'MC': p[mc_ix+2:]})
+                show['acts'].append({'name': p[mc_ix+2:], 'type': 'MC'})
             else:
-                performers.append(p)
-        show['acts'].append({'performers': performers})
-                
+                show['acts'].append({'name': p, 'type': 'performer'})
+        
+        # Append Comedy Cellar to each location name
+        show['location'] = 'Comedy Cellar - ' + show['location']
+        
         shows.append(show)
-    return shows
+        show_ix += 1
 
-# Test function out for one page
-url = 'http://www.comedycellar.com/line-up/'
-shows_list = extract_data(url)
+    return shows
 
 #%% Get date options from dropdown menu
 
 date_options = []
 value_options = []
 
+url = 'http://www.comedycellar.com/line-up/'
 html = urllib.request.urlopen(url).read()
 soup = BeautifulSoup(html, "html.parser")
 
@@ -95,10 +95,13 @@ for option in options.findAll('option'):
 
 #%% Get all of the shows for all of the dates available on the site
 
-full_show_list = []
+all_shows = []
+shows_unflat = []
 base_url = 'http://www.comedycellar.com/line-up/?_'
 
 for value in value_options:
     url = base_url + urllib.parse.urlencode({'date': value})
     r = requests.get(url)
-    full_show_list.append(extract_data(url))
+    shows_unflat.append(extract_data(url))
+
+all_shows = [item for sublist in shows_unflat for item in sublist]

@@ -14,6 +14,7 @@ import calendar
 from datetime import datetime
 import re
 
+#%%
 # All of the shows are on this URL
 url = 'http://thestandnyc.ticketfly.com/listing'
 
@@ -23,26 +24,37 @@ soup = BeautifulSoup(html, "html.parser")
 all_shows = []
 
 list_view = soup.find('div', class_='list-view')
-shows = list_view.findAll(attrs={'class': re.compile(r"^list-view-item")})
+shows = list_view.findAll(attrs={'class': re.compile(r'^list-view-item')})
 
 for show in shows:
     info = {}
     
     info['location'] = 'The Stand NYC'
-    info['price'] = show.find('h3', class_='price-range').text.strip()
-    info['ticket_link'] = show.find('a', class_='tickets')['href'].strip()
+    price_text = show.find('h3', class_='price-range').text.strip()
+    dash_ix = price_text.find('-')
+    if dash_ix >= 0:
+        info['price'] = float(price_text[dash_ix + 3:].strip())
+    else:
+        pass
+        info['price'] = float(price_text[1:].strip())
+    
+    try:
+        info['ticket_link'] = show.find('a', class_='tickets')['href'].strip()
+    except TypeError:
+        continue
     
     details = show.find('div', class_='list-view-details vevent')
     
+    info['show_name'] = details.find('h1').find('a').text
     info['acts'] = []
-    info['acts'].append({'headliners': details.find('h1').find('a').text})
     
     # Get support acts for those that have them
     try:
-        support = details.find('h2', class_='supports description').find('a').text
-        info['acts'].append({'support': support})
+        supports = details.find('h2', class_='supports description').find('a').text
+        for support in supports.split(','):
+            info['acts'].append({'name': support.strip(), 'type': 'support'})
     except:
-        pass
+        pass    
     
     day_date = details.find('h2', class_='dates').text
     
