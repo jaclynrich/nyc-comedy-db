@@ -14,6 +14,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import re
+import csv
 
 # Gets all of the show information for one date
 def extract_data(url):
@@ -72,7 +73,6 @@ def extract_data(url):
     price_times = dict(zip(corrected_times, prices))
     
     shows = []
-    show_ix = 0
     for gig in soup.findAll('div', class_='show'):
         show = {}
         show['day'] = day
@@ -137,7 +137,6 @@ def extract_data(url):
                     show['price'] = m.group()[1:]
         
         shows.append(show)
-        show_ix += 1
 
     return shows
 
@@ -168,3 +167,15 @@ for value in value_options:
     shows_unflat.append(extract_data(url))
 
 all_shows = [item for sublist in shows_unflat for item in sublist]
+
+#%% Assemble list of comedians for comedian_list
+comedians = set()
+for show in all_shows:
+    for act in show['acts']:
+        comedians.add(act['name'])
+comedians = list(comedians)
+
+with open('cellar_comedians.csv', 'w') as f:
+    writer = csv.writer(f, delimiter=',')
+    for line in comedians:
+        writer.writerow([line])
