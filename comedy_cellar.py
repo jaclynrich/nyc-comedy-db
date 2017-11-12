@@ -9,8 +9,11 @@ Created on Sat Sep 23 12:26:59 2017
 """
 
 import urllib.request, urllib.parse, urllib.error
+from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+import re
 
 # Gets all of the show information for one date
 def extract_data(url):
@@ -26,7 +29,50 @@ def extract_data(url):
     date = day_date[ix_space+1:]
     link = soup.find('a', class_='make-comedy-reservation-link')['href']
     
+    # Get price from ticket_link url
+    # Get source of iframe to open with selenium
+    reservation_html = urllib.request.urlopen(link).read()
+    reservation_soup = BeautifulSoup(reservation_html, "html.parser")
+    frame = reservation_soup.find('iframe', attrs={'name':'reservation_iframe'})
+    
+    BASE_URL = 'http://www.comedycellar.com/'
+    frame_url = urljoin(BASE_URL, frame['src'])
+    
+    # Get all the prices for that date as a list
+    chromedriver = '/Users/Jackie/anaconda/chromedriver/chromedriver'
+    browser = webdriver.Chrome(chromedriver)
+    browser.get(frame_url)
+    
+    price_soup = BeautifulSoup(browser.page_source, 'html.parser')
+    browser.close()
+    
+    prices = []
+    showtimes = price_soup.find('div', class_='showtimes')
+    for p in showtimes.findAll('span', class_='cover-span'):
+        m = re.match(r'([$]\d+)', p.text)
+        if m:
+            prices.append(float(m.group()[1:]))
+        else:
+            prices.append(-1)
+    
+    times = []
+    for p in showtimes.findAll('span'):
+        attributes_dictionary = p.attrs
+        if attributes_dictionary == {}:
+            times.append(p.text.split()[0])
+    
+    # correct times
+    corrected_times = []
+    for time in times:
+        time = re.sub('.m', '', time)
+        if len(time) < 3:
+            time = time + ':00'
+        corrected_times.append(time)
+    
+    price_times = dict(zip(corrected_times, prices))
+    
     shows = []
+    show_ix = 0
     for gig in soup.findAll('div', class_='show'):
         show = {}
         show['day'] = day
@@ -74,10 +120,20 @@ def extract_data(url):
         # Append Comedy Cellar to each location name
         show['location'] = 'Comedy Cellar - ' + show['location']
         
+        # Price - loop through prices and assign according to show_ix
+        time = show['time']['show_time'].split()[0]
+        try:
+            if price_times[time] > -1:
+                show['price'] = price_times[time]
+        # LOOK FOR PRICE IN SHOW NOTE?
+        except KeyError:
+            pass
+        
         shows.append(show)
         show_ix += 1
 
     return shows
+
 
 #%% Get date options from dropdown menu
 
