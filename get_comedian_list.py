@@ -37,7 +37,8 @@ for page in pages.findAll('a'):
     all_urls.append(page['href'])
 
 body = soup.find('ul', id='schedule-content-progression')
-for section in body.findAll('li', class_='schedule3column-pro item-pro-schedule comedians'):
+class_name = 'schedule3column-pro item-pro-schedule comedians'
+for section in body.findAll('li', class_=class_name):
     comedian_list.append(section.find('a', href=re.compile\
                         (r'^http://www.standupny.com/comedians/')).text)
 
@@ -45,7 +46,7 @@ for url in all_urls[1:]:
     html = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(html, 'html.parser')
     body = soup.find('ul', id='schedule-content-progression')
-    for section in body.findAll('li', class_='schedule3column-pro item-pro-schedule comedians'):
+    for section in body.findAll('li', class_=class_name):
         comedian_list.append(section.find('a', href=re.compile\
                             (r'^http://www.standupny.com/comedians/')).text)
 
@@ -63,7 +64,9 @@ for comedian in soup.findAll('li'):
     # Remove other names in parentheses
     paren_ix = comedian.find('(')
     if paren_ix > -1:
-        comedian = comedian[:paren_ix].strip()    
-    comedian_list.append(comedian)
+        comedian = comedian[:paren_ix].strip()
+    # Do not include singular letters from wikipedia's page
+    if len(comedian) > 1:
+        comedian_list.append(comedian)
 
 comedian_list = list(set(comedian_list))
