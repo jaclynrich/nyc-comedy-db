@@ -13,8 +13,10 @@ from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
 import re
+from comedian_list import comedian_list 
 
 #%%
+
 # All of the shows are on this URL
 url = 'http://thestandnyc.ticketfly.com/listing'
 
@@ -48,6 +50,11 @@ for show in shows:
     info['show_name'] = details.find('h1').find('a').text
     info['acts'] = []
     
+    # Find headliners from show_name
+    for comedian in comedian_list:
+        if comedian in info['show_name']:
+            info['acts'].append({'name': comedian, 'type': 'headliner'})
+                   
     # Get support acts for those that have them
     try:
         supports = details.find('h2', class_='supports description').find('a').text
