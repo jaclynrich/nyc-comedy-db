@@ -22,17 +22,20 @@ with open('comedian_list.csv', 'r') as f:
     for line in f:
         comedian_list.append(line.strip())
 
+# Sort by length of name, and later only get the first match = longest match
+comedian_list.sort(key=len, reverse=True)
+
 # All of the shows are on this URL
 url = 'http://thestandnyc.ticketfly.com/listing'
 
 html = urllib.request.urlopen(url).read()
 soup = BeautifulSoup(html, "html.parser")
 
-all_shows = []
-
 list_view = soup.find('div', class_='list-view')
 shows = list_view.findAll(attrs={'class': re.compile(r'^list-view-item')})
 
+#%%
+all_shows = []
 for show in shows:
     info = {}
     
@@ -55,16 +58,36 @@ for show in shows:
     info['show_title'] = details.find('h1').find('a').text
     info['acts'] = []
     
-    # Find headliners from show_title
-    in_list = [comedian for comedian in comedian_list if comedian in \
-               info['show_title']]
-    for comedian in in_list:
-        info['acts'].append({'name': comedian, 'type': 'headliner'})    
-                   
+    # Find performers from show_title
+    # First look for Roy Wood, Jr. before split - he is the only performer
+    # with a comma
+    if 'Roy Wood, Jr.' in info['show_title']:
+        info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'performer'})    
+    title_parts = info['show_title'].split(',')
+    t = {comedian.lower() for comedian in comedian_list}
+    in_list = []
+    for part in title_parts:
+        in_list = [comedian for comedian in t if comedian in part.lower()]
+        performer = None
+        if len(in_list) > 1:
+            performer = max(in_list, key=len)    
+        elif len(in_list) == 1:
+            performer = in_list[0]
+            #info['acts'].append({'name': in_list[0], 'type': 'performer'})
+        
+        if performer is not None:    
+            s = re.search(performer, part, re.IGNORECASE)
+            if s and not s.group().islower():
+                info['acts'].append({'name': s.group(), 'type': 'performer'})
+
     # Get support acts for those that have them
     try:
         supports = details.find('h2', class_='supports description').\
                    find('a').text
+        # First look for Roy Wood, Jr. before split - he is the only performer
+        # with a comma
+        if 'Roy Wood, Jr.' in supports:
+            info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'support'})
         for support in supports.split(','):
             info['acts'].append({'name': support.strip(), 'type': 'support'})
     except:
@@ -76,7 +99,7 @@ for show in shows:
     abbr_to_full = dict(zip(list(calendar.day_abbr), list(calendar.day_name)))
     info['day'] = abbr_to_full[day_date[:3]]
     info['date'] = datetime.strftime(datetime.strptime(day_date[4:] + '.17', \
-        '%m.%d.%y'), '%B %d, %Y')
+        '%m.%d.%y'), '%B %-d, %Y')
     
     # All shows have a show_time, only some have a door_time
     times = details.find('h2', class_='times')
@@ -98,7 +121,7 @@ for show in shows:
                         text.strip()
     
     all_shows.append(info)
-    
+
 #%% Assemble list of comedians from The Stand's site for comedian_list
 
 comedians = set()
