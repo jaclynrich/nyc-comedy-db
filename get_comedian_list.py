@@ -32,6 +32,8 @@ with open('wiki_comedians.csv') as f:
     for line in reader:
         comedian_list.append(line[0])
 
+comedian_list = list(set(comedian_list))
+
 # Write out comedian_list as csv
 with open('comedian_list.csv', 'w') as f:
     writer = csv.writer(f, delimiter=',')
