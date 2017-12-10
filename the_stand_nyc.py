@@ -13,9 +13,14 @@ from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
 import re
-from get_comedian_list import comedian_list 
+import csv
 
 #%%
+
+comedian_list = []
+with open('comedian_list.csv', 'r') as f:
+    for line in f:
+        comedian_list.append(line.strip())
 
 # All of the shows are on this URL
 url = 'http://thestandnyc.ticketfly.com/listing'
@@ -51,13 +56,15 @@ for show in shows:
     info['acts'] = []
     
     # Find headliners from show_title
-    in_list = [comedian for comedian in comedian_list if comedian in info['show_title']]
+    in_list = [comedian for comedian in comedian_list if comedian in \
+               info['show_title']]
     for comedian in in_list:
         info['acts'].append({'name': comedian, 'type': 'headliner'})    
                    
     # Get support acts for those that have them
     try:
-        supports = details.find('h2', class_='supports description').find('a').text
+        supports = details.find('h2', class_='supports description').\
+                   find('a').text
         for support in supports.split(','):
             info['acts'].append({'name': support.strip(), 'type': 'support'})
     except:
@@ -68,7 +75,8 @@ for show in shows:
     # Convert day abbreviation to full day name
     abbr_to_full = dict(zip(list(calendar.day_abbr), list(calendar.day_name)))
     info['day'] = abbr_to_full[day_date[:3]]
-    info['date'] = datetime.strftime(datetime.strptime(day_date[4:] + '.17', '%m.%d.%y'), '%B %d, %Y')
+    info['date'] = datetime.strftime(datetime.strptime(day_date[4:] + '.17', \
+        '%m.%d.%y'), '%B %d, %Y')
     
     # All shows have a show_time, only some have a door_time
     times = details.find('h2', class_='times')
@@ -86,6 +94,33 @@ for show in shows:
     else:
         info['time']['show_time'] = show_time.strip()
         
-    info['show_note'] = details.find('h2', class_='age-restriction over-16').text.strip()
+    info['show_note'] = details.find('h2', class_='age-restriction over-16').\
+                        text.strip()
     
     all_shows.append(info)
+    
+#%% Assemble list of comedians from The Stand's site for comedian_list
+
+comedians = set()
+all_urls = []
+all_urls.append('http://www.standupny.com/comedians-list/')
+
+html = urllib.request.urlopen(all_urls[0]).read()
+soup = BeautifulSoup(html, 'html.parser')
+
+pages = soup.find('div', class_='pagination-custom')
+for page in pages.findAll('a'):
+    all_urls.append(page['href'])
+
+for url in all_urls:
+    html = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(html, 'html.parser')
+    for h in soup.findAll('h2', class_='schedule-title-pro'):
+        comedians.add(h.find('a').text)
+
+comedians = list(comedians)
+
+with open('the_stand_comedians.csv', 'w') as f:
+    writer = csv.writer(f, delimiter=',')
+    for line in comedians:
+        writer.writerow([line])
