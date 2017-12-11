@@ -40,15 +40,15 @@ def extract_data(url):
         info['acts'] = []
         in_list = [comedian for comedian in comedian_list if comedian in info['show_title']]
         for comedian in in_list:
-            info['acts'].append({'name': comedian, 'type': 'headliner'})
+            info['acts'].append({'name': comedian, 'type': 'performer'})
         print(info['acts'])
         
         # Look for headliners in the show subtitle
         subtitle = show_info.findAll('h2')[1].text
-        in_list_sub = [comedian for comedian in comedian_list if comedian in subtitle]
+        in_list_sub = [comedian for comedian in comedian_list if comedian in \
+                       subtitle]
         for comedian in in_list_sub:
-            info['acts'].append({'name': comedian, 'type': 'headliner'})
-        print(info['acts'])
+            info['acts'].append({'name': comedian, 'type': 'performer'})
         
         date_info = show.find('div', class_='show-date')
         day_date = date_info.find('p', class_='white').text.strip()
@@ -62,7 +62,7 @@ def extract_data(url):
         month = day_date[4:7]
         date = day_date[8:-2]
         info['date'] = datetime.strftime(datetime.strptime(month + ' ' + date + \
-                                         ' 17', '%b %d %y'), '%B %d, %Y')
+                                         ' 17', '%b %d %y'), '%B %-d, %Y')
     
         info['ticket_link'] = date_info.find('a', style='color:red')['href']
         time = date_info.find('a', style='color:red').text.strip().lower()
@@ -78,7 +78,6 @@ def extract_data(url):
         info['time']['show_time'] = corrected_time
         
         # Parse the ticket_link url to get the price
-        
         hdr = {'User-Agent': 'Mozilla/5.0'}
         req = Request(info['ticket_link'],headers=hdr)
         page = urlopen(req)
