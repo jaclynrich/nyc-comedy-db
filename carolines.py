@@ -13,9 +13,16 @@ from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
 import re
-from get_comedian_list import comedian_list
 
 #%%
+comedian_list = []
+with open('comedian_list.csv', 'r') as f:
+    for line in f:
+        comedian_list.append(line.strip())
+
+# Sort by length of name, and later only get the first match = longest match
+comedian_list.sort(key=len, reverse=True)
+
 url = 'http://www.carolines.com/full-schedule/'
 
 html = urllib.request.urlopen(url).read()
