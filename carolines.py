@@ -8,6 +8,7 @@ Created on Thu Nov  2 02:37:22 2017
 
 import urllib.request, urllib.parse, urllib.error
 from urllib.request import Request, urlopen
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
@@ -83,4 +84,37 @@ for show in soup.findAll('div', class_='schedul-block'):
 
     show_list.append(info)
     
+#%% Get the urls of all of the different pages of shows
 
+base_url = 'http://www.carolines.com'
+urls = []
+url = 'http://www.carolines.com/full-schedule/'
+urls.append(url)
+
+html = urllib.request.urlopen(url).read()
+soup = BeautifulSoup(html, 'html.parser')
+    
+navigation = soup.find('div', class_='navigation nf-pagenavi')
+for page_option in navigation.findAll('a'):
+    url = page_option['href']
+    urls.append(urljoin(base_url, url))
+    
+# Not all urls were available from the first page - so get the rest from
+# the last page
+html = urllib.request.urlopen(urls[len(urls)-1]).read()
+soup = BeautifulSoup(html, 'html.parser')
+navigation = soup.find('div', class_='navigation nf-pagenavi')
+for page_option in navigation.findAll('a'):
+    url = page_option['href']
+    urls.append(urljoin(base_url, url))
+
+# Remove duplicates from urls
+no_duplicates_urls = set()
+new_urls = []
+
+for u in urls:
+  if u in no_duplicates_urls: continue
+  new_urls.append(u)
+  no_duplicates_urls.add(u)
+
+urls[:] = new_urls
