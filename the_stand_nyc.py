@@ -94,12 +94,22 @@ for show in shows:
         pass    
     
     day_date = details.find('h2', class_='dates').text
+    month_day = day_date[4:]
     
     # Convert day abbreviation to full day name
     abbr_to_full = dict(zip(list(calendar.day_abbr), list(calendar.day_name)))
     info['day'] = abbr_to_full[day_date[:3]]
-    info['date'] = datetime.strftime(datetime.strptime(day_date[4:] + '.17', \
-        '%m.%d.%y'), '%B %-d, %Y')
+    
+    # Append 17 to dates in 2017, 18 to those in 2018
+    if month_day.startswith('1.'):
+        info['date'] = (datetime.strptime(day_date[4:] + '.18', \
+                    '%m.%d.%y')).date()
+    else:
+        info['date'] = (datetime.strptime(day_date[4:] + '.17', \
+                    '%m.%d.%y')).date()
+    
+    #info['date'] = datetime.strftime(datetime.strptime(day_date[4:] + '.17', \
+    #    '%m.%d.%y'), '%B %-d, %Y')
     
     # All shows have a show_time, only some have a door_time
     times = details.find('h2', class_='times')

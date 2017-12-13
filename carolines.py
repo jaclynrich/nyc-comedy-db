@@ -61,8 +61,21 @@ def extract_data(url):
     
         month = day_date[4:7]
         date = day_date[8:-2]
-        info['date'] = datetime.strftime(datetime.strptime(month + ' ' + date + \
-                                         ' 17', '%b %d %y'), '%B %-d, %Y')
+        print(month)
+        print(date)
+        
+        # Append 17 to dates in 2017, 18 to those in 2018
+        if month == 'Dec':
+            info['date'] = (datetime.strptime(month + ' ' + date + ' 17', \
+                        '%b %d %y')).date()
+            print(info['date'])
+        else:
+            info['date'] = (datetime.strptime(month + ' ' + date + ' 18', \
+                        '%b %d %y')).date()
+            print(info['date'])
+        
+        #info['date'] = (datetime.strptime(month + ' ' + date + ' 17', \
+        #                '%b %d %y')).date()
     
         info['ticket_link'] = date_info.find('a', style='color:red')['href']
         time = date_info.find('a', style='color:red').text.strip().lower()
@@ -130,7 +143,7 @@ urls[:] = new_urls
 
 all_shows = []
 shows_unflat = []
-for url in urls:
+for url in surls:
     shows_unflat.append(extract_data(url))
 
 all_shows = [item for sublist in shows_unflat for item in sublist]
