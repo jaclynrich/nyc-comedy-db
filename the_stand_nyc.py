@@ -116,16 +116,22 @@ for show in shows:
     info['time'] = {}
     try:
         door_time = times.find('span', class_='doors').text
-        info['time']['door_time'] = door_time[(door_time.find(':') + 1):].strip()
+        door_time_str = door_time[(door_time.find(':') + 1):].strip()
+        info['time']['door_time'] = datetime.strptime(door_time_str, \
+                                    '%I:%M %p').time()
     except AttributeError:
         pass
         
     show_time = times.find('span', class_='start dtstart').contents[1]
     colon_ix = show_time.find('Show:')
     if colon_ix >= 0:
-        info['time']['show_time'] = show_time[(colon_ix + 6):].strip()
+        show_time_str = show_time[(colon_ix + 6):].strip()
+        info['time']['show_time'] = datetime.strptime(show_time_str, \
+                                    '%I:%M %p').time()
     else:
-        info['time']['show_time'] = show_time.strip()
+        show_time_str = show_time.strip()
+        info['time']['show_time'] = datetime.strptime(show_time_str, \
+                                    '%I:%M %p').time()
         
     info['show_note'] = details.find('h2', class_='age-restriction over-16').\
                         text.strip()

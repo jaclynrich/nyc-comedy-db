@@ -71,8 +71,8 @@ def extract_data(url):
         time = re.sub('.m', '', time)
         if len(time) < 3:
             time = time + ':00'
-        corrected_times.append(time)
-    
+        corrected_times.append(datetime.strptime(time + ' pm', '%I:%M %p').time())
+                                    
     price_times = dict(zip(corrected_times, prices))
     
     shows = []
@@ -89,7 +89,8 @@ def extract_data(url):
         # Some times are incorrectly marked as having hour:01
         show_time = re.sub(':01', ':00', show_time)
         show['time'] = {}
-        show['time']['show_time'] = show_time
+        show['time']['show_time'] = (datetime.strptime(show_time, '%I:%M %p'))\
+                                    .time()
 
         pm_ix = location.find('pm')
         if pm_ix > 0:
@@ -129,7 +130,7 @@ def extract_data(url):
         show['location'] = 'Comedy Cellar - ' + show['location']
         
         # Price - loop through prices and assign according to show_ix
-        time = show['time']['show_time'].split()[0]
+        time = show['time']['show_time']
         try:
             if price_times[time] > -1:
                 show['price'] = price_times[time]
@@ -139,7 +140,7 @@ def extract_data(url):
                 m = re.search(r'[$](\d+)', show['show_note'])
                 if m:
                     show['price'] = m.group()[1:]
-        
+
         shows.append(show)
 
     return shows
@@ -165,7 +166,8 @@ all_shows = []
 shows_unflat = []
 base_url = 'http://www.comedycellar.com/line-up/?_'
 
-for value in value_options[:-4]:
+
+for value in value_options[0]:
     url = base_url + urllib.parse.urlencode({'date': value})
     r = requests.get(url)
     shows_unflat.append(extract_data(url))

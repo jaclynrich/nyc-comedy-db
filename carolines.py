@@ -61,22 +61,15 @@ def extract_data(url):
     
         month = day_date[4:7]
         date = day_date[8:-2]
-        print(month)
-        print(date)
         
         # Append 17 to dates in 2017, 18 to those in 2018
         if month == 'Dec':
             info['date'] = (datetime.strptime(month + ' ' + date + ' 17', \
                         '%b %d %y')).date()
-            print(info['date'])
         else:
             info['date'] = (datetime.strptime(month + ' ' + date + ' 18', \
                         '%b %d %y')).date()
-            print(info['date'])
         
-        #info['date'] = (datetime.strptime(month + ' ' + date + ' 17', \
-        #                '%b %d %y')).date()
-    
         info['ticket_link'] = date_info.find('a', style='color:red')['href']
         time = date_info.find('a', style='color:red').text.strip().lower()
         
@@ -88,7 +81,8 @@ def extract_data(url):
         else:
             corrected_time = re.sub(',', '', time)
         info['time'] = {}
-        info['time']['show_time'] = corrected_time
+        info['time']['show_time'] = datetime.strptime(corrected_time, \
+                                    '%I:%M %p').time()
         
         # Parse the ticket_link url to get the price
         hdr = {'User-Agent': 'Mozilla/5.0'}
