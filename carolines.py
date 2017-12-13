@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 import calendar
 from datetime import datetime
 import re
+import json
 
 #%%
 comedian_list = []
@@ -41,7 +42,6 @@ def extract_data(url):
         in_list = [comedian for comedian in comedian_list if comedian in info['show_title']]
         for comedian in in_list:
             info['acts'].append({'name': comedian, 'type': 'performer'})
-        print(info['acts'])
         
         # Look for headliners in the show subtitle
         subtitle = show_info.findAll('h2')[1].text
@@ -49,7 +49,7 @@ def extract_data(url):
                        subtitle]
         for comedian in in_list_sub:
             info['acts'].append({'name': comedian, 'type': 'performer'})
-        
+
         date_info = show.find('div', class_='show-date')
         day_date = date_info.find('p', class_='white').text.strip()
         
@@ -125,7 +125,7 @@ for u in urls:
   no_duplicates_urls.add(u)
 
 urls[:] = new_urls
-
+    
 #%% Get all of the shows for all of the dates available on the site
 
 all_shows = []
@@ -134,3 +134,8 @@ for url in urls:
     shows_unflat.append(extract_data(url))
 
 all_shows = [item for sublist in shows_unflat for item in sublist]
+
+
+#%% Save all_shows as a set of json documents
+with open('carolines_shows.json', 'w') as f:
+    json.dump(all_shows, f, indent=4)

@@ -15,6 +15,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import re
 import csv
+import json
 
 # Gets all of the show information for one date
 def extract_data(url):
@@ -169,6 +170,10 @@ for value in value_options:
 
 all_shows = [item for sublist in shows_unflat for item in sublist]
 
+#%% Save all_shows as a set of json documents
+with open('cellar_shows.json', 'w') as f:
+    json.dump(all_shows, f, indent=4)
+    
 #%% Assemble list of comedians for comedian_list
 comedians = set()
 for show in all_shows:

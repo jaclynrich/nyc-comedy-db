@@ -14,6 +14,7 @@ import calendar
 from datetime import datetime
 import re
 import csv
+import json
 
 #%%
 
@@ -73,7 +74,6 @@ for show in shows:
             performer = max(in_list, key=len)    
         elif len(in_list) == 1:
             performer = in_list[0]
-            #info['acts'].append({'name': in_list[0], 'type': 'performer'})
         
         if performer is not None:    
             s = re.search(performer, part, re.IGNORECASE)
@@ -122,6 +122,10 @@ for show in shows:
     
     all_shows.append(info)
 
+#%% Save all_shows as a set of json documents
+with open('the_stand_shows.json', 'w') as f:
+    json.dump(all_shows, f, indent=4)
+    
 #%% Assemble list of comedians from The Stand's site for comedian_list
 
 comedians = set()
