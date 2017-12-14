@@ -107,13 +107,15 @@ for show in shows:
     else:
         info['date'] = (datetime.strptime(month_day + '.17', \
                     '%m.%d.%y').strftime('%B %-d, %Y'))
-    print(info['date'])
     
     # All shows have a show_time, only some have a door_time
     times = details.find('h2', class_='times')
     info['time'] = {}
+    info['time_str'] = {}
     try:
         door_time = times.find('span', class_='doors').text
+        info['time_str']['door_time'] = door_time[(door_time.find(':') + 1):]\
+            .strip()
         info['time']['door_time'] = info['date'] + ' ' + \
             door_time[(door_time.find(':') + 1):].strip()
     except AttributeError:
@@ -122,11 +124,16 @@ for show in shows:
     show_time = times.find('span', class_='start dtstart').contents[1]
     colon_ix = show_time.find('Show:')
     if colon_ix >= 0:
+        info['time_str']['show_time'] = show_time[(colon_ix + 6):].strip()
         info['time']['show_time'] = info['date'] + ' ' + \
             show_time[(colon_ix + 6):].strip()
     else:
+        info['time_str']['show_time'] = show_time.strip()
         info['time']['show_time'] = info['date'] + ' ' + show_time.strip()
     
+    # Include another date field that will not be converted to a datetime
+    # when it is loaded into MongoDB
+    info['date_str'] = info['date']
     info['show_note'] = details.find('h2', class_='age-restriction over-16').\
                         text.strip()
     

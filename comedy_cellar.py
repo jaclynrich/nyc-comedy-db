@@ -78,6 +78,7 @@ def extract_data(url):
         show = {}
         show['day'] = day
         show['date'] = date
+        show['date_str'] = date
         show['ticket_link'] = link
         
         time_location = gig.find('span', class_='show-time closed').text.strip()
@@ -87,7 +88,9 @@ def extract_data(url):
         # Some times are incorrectly marked as having hour:01
         show_time = re.sub(':01', ':00', show_time)
         show['time'] = {}
-        show['time']['show_time'] = show_time
+        show['time_str'] = {}
+        show['time']['show_time'] = show['date'] + ' ' + show_time
+        show['time_str']['show_time'] = show_time
 
         pm_ix = location.find('pm')
         if pm_ix > 0:

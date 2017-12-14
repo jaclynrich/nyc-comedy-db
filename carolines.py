@@ -81,7 +81,9 @@ def extract_data(url):
         else:
             corrected_time = re.sub(',', '', time)
         info['time'] = {}
-        info['time']['show_time'] = corrected_time
+        info['time_str'] = {}
+        info['time_str']['show_time'] = corrected_time
+        info['time']['show_time'] = info['date'] + ' ' + corrected_time
         
         # Parse the ticket_link url to get the price
         hdr = {'User-Agent': 'Mozilla/5.0'}
@@ -89,6 +91,10 @@ def extract_data(url):
         page = urlopen(req)
         reservation_soup = BeautifulSoup(page, 'html.parser')
         price = reservation_soup.find('strong', class_='EDPPriceVerticalAlign')
+        
+        # Include another date field that will not be converted to a datetime 
+        # when it is loaded into MongoDB
+        info['date_str'] = info['date']
     
         if price is not None:
             info['price'] = float(price.text[1:])
