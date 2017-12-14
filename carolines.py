@@ -61,8 +61,14 @@ def extract_data(url):
     
         month = day_date[4:7]
         date = day_date[8:-2]
-        info['date'] = datetime.strftime(datetime.strptime(month + ' ' + date + \
-                                         ' 17', '%b %d %y'), '%B %-d, %Y')
+        
+        # Append 17 to dates in 2017, 18 to those in 2018
+        if month == 'Dec':
+            info['date'] = datetime.strptime(month + ' ' + date + ' 17', \
+                        '%b %d %y').strftime('%B %-d, %Y')
+        else:
+            info['date'] = datetime.strptime(month + ' ' + date + ' 18', \
+                        '%b %d %y').strftime('%B %-d, %Y')
     
         info['ticket_link'] = date_info.find('a', style='color:red')['href']
         time = date_info.find('a', style='color:red').text.strip().lower()
