@@ -39,7 +39,8 @@ def extract_data(url):
         
         # Look for headliners in the show_title
         info['acts'] = []
-        in_list = [comedian for comedian in comedian_list if comedian in info['show_title']]
+        in_list = [comedian for comedian in comedian_list if comedian in \
+                   info['show_title']]
         for comedian in in_list:
             info['acts'].append({'name': comedian, 'type': 'performer'})
         

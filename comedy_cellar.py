@@ -71,7 +71,7 @@ def extract_data(url):
         time = re.sub('.m', '', time)
         if len(time) < 3:
             time = time + ':00'
-        corrected_times.append(datetime.strptime(time + ' pm', '%I:%M %p').time())
+        corrected_times.append(time + ' pm')
                                     
     price_times = dict(zip(corrected_times, prices))
     
@@ -132,7 +132,7 @@ def extract_data(url):
         show['location'] = 'Comedy Cellar - ' + show['location']
         
         # Price - loop through prices and assign according to show_ix
-        time = show['time']['show_time']
+        time = show['time_str']['show_time']
         try:
             if price_times[time] > -1:
                 show['price'] = price_times[time]
