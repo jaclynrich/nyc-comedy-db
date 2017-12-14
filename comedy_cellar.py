@@ -16,6 +16,7 @@ from selenium import webdriver
 import re
 import csv
 import json
+from datetime import datetime
 
 # Gets all of the show information for one date
 def extract_data(url):
@@ -28,7 +29,8 @@ def extract_data(url):
     day_date = soup.find('div', class_='show-search-title').text.strip()
     ix_space = day_date.find(' ')
     day = day_date[:ix_space]
-    date = day_date[ix_space+1:]
+    date_str = day_date[ix_space+1:]
+    date = (datetime.strptime(date_str, '%B %d, %Y')).date()
     link = soup.find('a', class_='make-comedy-reservation-link')['href']
     
     # Get price from ticket_link url
@@ -69,8 +71,8 @@ def extract_data(url):
         time = re.sub('.m', '', time)
         if len(time) < 3:
             time = time + ':00'
-        corrected_times.append(time)
-    
+        corrected_times.append(datetime.strptime(time + ' pm', '%I:%M %p').time())
+                                    
     price_times = dict(zip(corrected_times, prices))
     
     shows = []
@@ -130,7 +132,7 @@ def extract_data(url):
         show['location'] = 'Comedy Cellar - ' + show['location']
         
         # Price - loop through prices and assign according to show_ix
-        time = show['time']['show_time'].split()[0]
+        time = show['time']['show_time']
         try:
             if price_times[time] > -1:
                 show['price'] = price_times[time]
@@ -140,7 +142,7 @@ def extract_data(url):
                 m = re.search(r'[$](\d+)', show['show_note'])
                 if m:
                     show['price'] = m.group()[1:]
-        
+
         shows.append(show)
 
     return shows
@@ -166,7 +168,8 @@ all_shows = []
 shows_unflat = []
 base_url = 'http://www.comedycellar.com/line-up/?_'
 
-for value in value_options:
+
+for value in value_options[0]:
     url = base_url + urllib.parse.urlencode({'date': value})
     r = requests.get(url)
     shows_unflat.append(extract_data(url))

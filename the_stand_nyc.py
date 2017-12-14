@@ -134,6 +134,7 @@ for show in shows:
     # Include another date field that will not be converted to a datetime
     # when it is loaded into MongoDB
     info['date_str'] = info['date']
+
     info['show_note'] = details.find('h2', class_='age-restriction over-16').\
                         text.strip()
     
