@@ -30,7 +30,7 @@ def extract_data(url):
     ix_space = day_date.find(' ')
     day = day_date[:ix_space]
     date_str = day_date[ix_space+1:]
-    date = (datetime.strptime(date_str, '%B %d, %Y')).date()
+    date = datetime.strptime(date_str, '%B %d, %Y').strftime('%B %-d, %Y')
     link = soup.find('a', class_='make-comedy-reservation-link')['href']
     
     # Get price from ticket_link url
@@ -167,7 +167,6 @@ for option in options.findAll('option'):
 all_shows = []
 shows_unflat = []
 base_url = 'http://www.comedycellar.com/line-up/?_'
-
 
 for value in value_options[0]:
     url = base_url + urllib.parse.urlencode({'date': value})
