@@ -68,10 +68,16 @@ def extract_data(url):
     # correct times
     corrected_times = []
     for time in times:
+        m = re.search('.m', time)
+        if m:
+            am_pm = m.group()
         time = re.sub('.m', '', time)
         if len(time) < 3:
             time = time + ':00'
-        corrected_times.append(time + ' pm')
+        if am_pm is not None:
+            corrected_times.append(time + ' ' + am_pm)
+        else:
+            corrected_times.append(time + ' pm')
                                     
     price_times = dict(zip(corrected_times, prices))
     
@@ -139,18 +145,17 @@ def extract_data(url):
         time = show['time_str']['show_time']
         try:
             if price_times[time] > -1:
-                show['price'] = price_times[time]
+                show['price'] = price_times[time]        
         # Look for show in show_note
         except KeyError:
             if note is not None:
                 m = re.search(r'[$](\d+)', show['show_note'])
                 if m:
                     show['price'] = m.group()[1:]
-
+        
         shows.append(show)
 
     return shows
-
 
 #%% Get date options from dropdown menu
 
@@ -172,7 +177,7 @@ all_shows = []
 shows_unflat = []
 base_url = 'http://www.comedycellar.com/line-up/?_'
 
-for value in value_options[0]:
+for value in value_options:
     url = base_url + urllib.parse.urlencode({'date': value})
     r = requests.get(url)
     shows_unflat.append(extract_data(url))
