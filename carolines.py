@@ -37,56 +37,37 @@ def extract_data(url):
         info['show_title'] = show_info.find('a', class_='comedian-page')\
                                             ['title'].strip()    
         
-        # Find performers from show_title
-        # First look for Roy Wood, Jr. before split - he is the only performer
-        # with a comma
+        # Look for headliners in the show_title
         acts = []
         info['acts'] = []
-        if 'Roy Wood, Jr.' in info['show_title']:
-            acts.append('Roy Wood, Jr.')    
-        title_parts = info['show_title'].split(',')
-        t = {comedian.lower() for comedian in comedian_list}
-        in_list = []
-        for part in title_parts:
-            in_list = [comedian for comedian in t if comedian in part.lower()]
-            performer = None
-            if len(in_list) > 1:
-                performer = max(in_list, key=len)    
-            elif len(in_list) == 1:
-                performer = in_list[0]
-            
-            if performer is not None:    
-                s = re.search(performer, part, re.IGNORECASE)
-                if s and not s.group().islower():
-                    acts.append(s.group())
+        in_list = [comedian for comedian in comedian_list if comedian in \
+                   info['show_title']]
+        for comedian in in_list:
+            acts.append(comedian)
         
         # Look for headliners in the show subtitle
         subtitle = show_info.findAll('h2')[1].text
-        if 'Roy Wood, Jr.' in subtitle:
-            acts.append('Roy Wood, Jr.')    
-        subtitle_parts = subtitle.split(',')
-        in_list = []
-        for part in subtitle_parts:
-            in_list = [comedian for comedian in t if comedian in part.lower()]
-            performer = None
-            if len(in_list) > 1:
-                performer = max(in_list, key=len)    
-            elif len(in_list) == 1:
-                performer = in_list[0]
-            
-            if performer is not None:    
-                s = re.search(performer, part, re.IGNORECASE)
-                if s and not s.group().islower():
-                    acts.append(s.group())
+        in_list_sub = [comedian for comedian in comedian_list if comedian in \
+                       subtitle]
+        for comedian in in_list_sub:
+            acts.append(comedian)
         
         acts = list(set(acts))
+        
+        for i in range(len(acts)):
+            current = acts[i]
+            rest_of_list = acts[0:i] + acts[i+1:len(acts)]
+            for r in rest_of_list:
+                if current in r:
+                    acts.remove(current)
+        
         for a in acts:
             info['acts'].append({'name': a, 'type': 'performer'})
-
+                
         # If info['acts'] is an empty list, delete it
         if info['acts'] == []:
             del info['acts']
-
+        
         date_info = show.find('div', class_='show-date')
         day_date = date_info.find('p', class_='white').text.strip()
         
