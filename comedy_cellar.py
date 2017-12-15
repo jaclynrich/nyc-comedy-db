@@ -128,6 +128,10 @@ def extract_data(url):
             else:
                 show['acts'].append({'name': p, 'type': 'performer'})
         
+        # If info['acts'] is an empty list, delete it
+        if show['acts'] == []:
+            del show['acts']
+        
         # Append Comedy Cellar to each location name
         show['location'] = 'Comedy Cellar - ' + show['location']
         

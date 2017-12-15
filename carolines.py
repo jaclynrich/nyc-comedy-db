@@ -50,6 +50,10 @@ def extract_data(url):
                        subtitle]
         for comedian in in_list_sub:
             info['acts'].append({'name': comedian, 'type': 'performer'})
+        
+        # If info['acts'] is an empty list, delete it
+        if info['acts'] == []:
+            del info['acts']
 
         date_info = show.find('div', class_='show-date')
         day_date = date_info.find('p', class_='white').text.strip()

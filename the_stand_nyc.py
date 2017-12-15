@@ -30,7 +30,7 @@ comedian_list.sort(key=len, reverse=True)
 url = 'http://thestandnyc.ticketfly.com/listing'
 
 html = urllib.request.urlopen(url).read()
-soup = BeautifulSoup(html, "html.parser")
+soup = BeautifulSoup(html, 'html.parser')
 
 list_view = soup.find('div', class_='list-view')
 shows = list_view.findAll(attrs={'class': re.compile(r'^list-view-item')})
@@ -91,7 +91,11 @@ for show in shows:
         for support in supports.split(','):
             info['acts'].append({'name': support.strip(), 'type': 'support'})
     except:
-        pass    
+        pass
+    
+    # If info['acts'] is an empty list, delete it
+    if info['acts'] == []:
+        del info['acts']
     
     day_date = details.find('h2', class_='dates').text
     month_day = day_date[4:]
