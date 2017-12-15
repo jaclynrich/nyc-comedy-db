@@ -40,9 +40,10 @@ def extract_data(url):
         # Find performers from show_title
         # First look for Roy Wood, Jr. before split - he is the only performer
         # with a comma
+        acts = []
         info['acts'] = []
         if 'Roy Wood, Jr.' in info['show_title']:
-            info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'performer'})    
+            acts.append('Roy Wood, Jr.')    
         title_parts = info['show_title'].split(',')
         t = {comedian.lower() for comedian in comedian_list}
         in_list = []
@@ -57,12 +58,12 @@ def extract_data(url):
             if performer is not None:    
                 s = re.search(performer, part, re.IGNORECASE)
                 if s and not s.group().islower():
-                    info['acts'].append({'name': s.group(), 'type': 'performer'})
+                    acts.append(s.group())
         
         # Look for headliners in the show subtitle
         subtitle = show_info.findAll('h2')[1].text
         if 'Roy Wood, Jr.' in subtitle:
-            info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'performer'})    
+            acts.append('Roy Wood, Jr.')    
         subtitle_parts = subtitle.split(',')
         in_list = []
         for part in subtitle_parts:
@@ -76,8 +77,12 @@ def extract_data(url):
             if performer is not None:    
                 s = re.search(performer, part, re.IGNORECASE)
                 if s and not s.group().islower():
-                    info['acts'].append({'name': s.group(), 'type': 'performer'})
+                    acts.append(s.group())
         
+        acts = list(set(acts))
+        for a in acts:
+            info['acts'].append({'name': a, 'type': 'performer'})
+
         # If info['acts'] is an empty list, delete it
         if info['acts'] == []:
             del info['acts']
