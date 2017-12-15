@@ -37,19 +37,46 @@ def extract_data(url):
         info['show_title'] = show_info.find('a', class_='comedian-page')\
                                             ['title'].strip()    
         
-        # Look for headliners in the show_title
+        # Find performers from show_title
+        # First look for Roy Wood, Jr. before split - he is the only performer
+        # with a comma
         info['acts'] = []
-        in_list = [comedian for comedian in comedian_list if comedian in \
-                   info['show_title']]
-        for comedian in in_list:
-            info['acts'].append({'name': comedian, 'type': 'performer'})
+        if 'Roy Wood, Jr.' in info['show_title']:
+            info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'performer'})    
+        title_parts = info['show_title'].split(',')
+        t = {comedian.lower() for comedian in comedian_list}
+        in_list = []
+        for part in title_parts:
+            in_list = [comedian for comedian in t if comedian in part.lower()]
+            performer = None
+            if len(in_list) > 1:
+                performer = max(in_list, key=len)    
+            elif len(in_list) == 1:
+                performer = in_list[0]
+            
+            if performer is not None:    
+                s = re.search(performer, part, re.IGNORECASE)
+                if s and not s.group().islower():
+                    info['acts'].append({'name': s.group(), 'type': 'performer'})
         
         # Look for headliners in the show subtitle
         subtitle = show_info.findAll('h2')[1].text
-        in_list_sub = [comedian for comedian in comedian_list if comedian in \
-                       subtitle]
-        for comedian in in_list_sub:
-            info['acts'].append({'name': comedian, 'type': 'performer'})
+        if 'Roy Wood, Jr.' in subtitle:
+            info['acts'].append({'name': 'Roy Wood, Jr.', 'type': 'performer'})    
+        subtitle_parts = subtitle.split(',')
+        in_list = []
+        for part in subtitle_parts:
+            in_list = [comedian for comedian in t if comedian in part.lower()]
+            performer = None
+            if len(in_list) > 1:
+                performer = max(in_list, key=len)    
+            elif len(in_list) == 1:
+                performer = in_list[0]
+            
+            if performer is not None:    
+                s = re.search(performer, part, re.IGNORECASE)
+                if s and not s.group().islower():
+                    info['acts'].append({'name': s.group(), 'type': 'performer'})
         
         # If info['acts'] is an empty list, delete it
         if info['acts'] == []:
@@ -151,7 +178,6 @@ for url in urls:
     shows_unflat.append(extract_data(url))
 
 all_shows = [item for sublist in shows_unflat for item in sublist]
-
 
 #%% Save all_shows as a set of json documents
 with open('carolines_shows.json', 'w') as f:
