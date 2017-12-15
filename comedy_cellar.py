@@ -68,6 +68,7 @@ def extract_data(url):
     # correct times
     corrected_times = []
     for time in times:
+        am_pm = None
         m = re.search('.m', time)
         if m:
             am_pm = m.group()
@@ -131,6 +132,8 @@ def extract_data(url):
             if(p.startswith('MC')):
                 mc_ix = p.find(':')
                 show['acts'].append({'name': p[mc_ix+2:], 'type': 'MC'})
+            elif p == 'MORE TO BE ANNOUNCED':
+                continue
             else:
                 show['acts'].append({'name': p, 'type': 'performer'})
         
