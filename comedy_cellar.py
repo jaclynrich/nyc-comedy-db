@@ -148,13 +148,13 @@ def extract_data(url):
         time = show['time_str']['show_time']
         try:
             if price_times[time] > -1:
-                show['price'] = price_times[time]        
+                show['price'] = float(price_times[time])      
         # Look for show in show_note
         except KeyError:
             if note is not None:
                 m = re.search(r'[$](\d+)', show['show_note'])
                 if m:
-                    show['price'] = m.group()[1:]
+                    show['price'] = float(m.group()[1:])
         
         shows.append(show)
 
