@@ -40,6 +40,10 @@ def extract_data(url):
         # Look for headliners in the show_title
         acts = []
         info['acts'] = []
+        # If the show_title is uppercase, change it to titlecase
+        if info['show_title'].isupper():
+            info['show_title'] = info['show_title'].title()
+            
         in_list = [comedian for comedian in comedian_list if comedian in \
                    info['show_title']]
         for comedian in in_list:
@@ -54,12 +58,19 @@ def extract_data(url):
         
         acts = list(set(acts))
         
-        for i in range(len(acts)):
-            current = acts[i]
-            rest_of_list = acts[0:i] + acts[i+1:len(acts)]
+        # Remove any acts that are smaller substrings of another act
+        lower = []
+        for a in acts:
+            lower.append(a.lower())
+        
+        for i in range(len(lower)):
+            if i == len(lower):
+                break
+            current = lower[i]
+            rest_of_list = lower[0:i] + lower[i+1:len(acts)+1]
             for r in rest_of_list:
                 if current in r:
-                    acts.remove(current)
+                    acts.remove(acts[i])
         
         for a in acts:
             info['acts'].append({'name': a, 'type': 'performer'})
