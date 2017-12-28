@@ -127,6 +127,11 @@ for show in shows:
         
     show_time = times.find('span', class_='start dtstart').contents[1]
     colon_ix = show_time.find('Show:')
+    
+    # Correct showtimes of 11:59 to 12:00
+    if show_time == '11:59 pm':
+        show_time = '12:00 am'
+    
     if colon_ix >= 0:
         info['time_str']['show_time'] = show_time[(colon_ix + 6):].strip()
         info['time']['show_time'] = info['date'] + ' ' + \
