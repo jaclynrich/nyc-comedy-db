@@ -10,7 +10,6 @@ Created on Sat Sep 23 12:26:59 2017
 
 import urllib.request, urllib.parse, urllib.error
 from urllib.parse import urljoin
-import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import re
@@ -157,48 +156,56 @@ def extract_data(url):
                     show['price'] = float(m.group()[1:])
         
         shows.append(show)
-
+        
     return shows
 
-#%% Get date options from dropdown menu
-
-date_options = []
-value_options = []
-
-url = 'http://www.comedycellar.com/line-up/'
-html = urllib.request.urlopen(url).read()
-soup = BeautifulSoup(html, "html.parser")
-
-options = soup.find('select', class_='dropkick filter-lineup-shows')
-for option in options.findAll('option'):
-    date_options.append(option.text.strip()) # just in case it is needed
-    value_options.append(option['value'].strip())
-
-#%% Get all of the shows for all of the dates available on the site
-
-all_shows = []
-shows_unflat = []
-base_url = 'http://www.comedycellar.com/line-up/?_'
-
-for value in value_options:
-    url = base_url + urllib.parse.urlencode({'date': value})
-    r = requests.get(url)
-    shows_unflat.append(extract_data(url))
-
-all_shows = [item for sublist in shows_unflat for item in sublist]
-
-#%% Save all_shows as a set of json documents
-with open('cellar_shows.json', 'w') as f:
-    json.dump(all_shows, f, indent=4)
+# Get date options from dropdown menu
+def get_date_options():
+    date_options = []
+    value_options = []
     
-#%% Assemble list of comedians for comedian_list
-comedians = set()
-for show in all_shows:
-    for act in show['acts']:
-        comedians.add(act['name'])
-comedians = list(comedians)
+    url = 'http://www.comedycellar.com/line-up/'
+    html = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(html, "html.parser")
+    
+    options = soup.find('select', class_='dropkick filter-lineup-shows')
+    for option in options.findAll('option'):
+        date_options.append(option.text.strip()) # just in case it is needed
+        value_options.append(option['value'].strip())
+    
+    return value_options
 
-with open('cellar_comedians.csv', 'w') as f:
-    writer = csv.writer(f, delimiter=',')
-    for line in comedians:
-        writer.writerow([line])
+# Get all of the shows for all of the dates available on the site and write
+# it as a json file
+def write_all_show_info(value_options): 
+    all_shows = []
+    shows_unflat = []
+    base_url = 'http://www.comedycellar.com/line-up/?_'
+    
+    for value in value_options:
+        url = base_url + urllib.parse.urlencode({'date': value})
+        shows_unflat.append(extract_data(url))
+    
+    all_shows = [item for sublist in shows_unflat for item in sublist]
+
+    # Save all_shows as a set of json documents
+    with open('cellar_shows.json', 'w') as f:
+        json.dump(all_shows, f, indent=4)
+    print('Wrote cellar_shows.json')
+    
+# Assemble list of comedians for comedian_list
+def write_comedy_list(all_shows):
+    comedians = set()
+    for show in all_shows:
+        for act in show['acts']:
+            comedians.add(act['name'])
+    comedians = list(comedians)
+    
+    with open('cellar_comedians.csv', 'w') as f:
+        writer = csv.writer(f, delimiter=',')
+        for line in comedians:
+            writer.writerow([line])
+            
+if __name__ == '__main__':
+    value_options = get_date_options()
+    write_all_show_info(value_options)

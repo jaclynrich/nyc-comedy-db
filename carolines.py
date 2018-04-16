@@ -15,16 +15,16 @@ from datetime import datetime
 import re
 import json
 
-#%%
-comedian_list = []
-with open('comedian_list.csv', 'r') as f:
-    for line in f:
-        comedian_list.append(line.strip())
-
-# Sort by length of name, and later only get the first match = longest match
-comedian_list.sort(key=len, reverse=True)
-
+# Get all the data from one show
 def extract_data(url):
+    comedian_list = []
+    with open('comedian_list.csv', 'r') as f:
+        for line in f:
+            comedian_list.append(line.strip())
+    
+    # Sort by length of name, and later only get the first match = longest match
+    comedian_list.sort(key=len, reverse=True)
+    
     html = urllib.request.urlopen(url).read()
     soup = BeautifulSoup(html, 'html.parser')
 
@@ -132,50 +132,56 @@ def extract_data(url):
         
     return show_list
     
-#%% Get the urls of all of the different pages of shows
-
-base_url = 'http://www.carolines.com'
-urls = []
-url = 'http://www.carolines.com/full-schedule/'
-urls.append(url)
-
-html = urllib.request.urlopen(url).read()
-soup = BeautifulSoup(html, 'html.parser')
+# Get the urls of all of the different pages of shows
+def get_all_urls():
+    base_url = 'http://www.carolines.com'
+    urls = []
+    url = 'http://www.carolines.com/full-schedule/'
+    urls.append(url)
     
-navigation = soup.find('div', class_='navigation nf-pagenavi')
-for page_option in navigation.findAll('a'):
-    url = page_option['href']
-    urls.append(urljoin(base_url, url))
+    html = urllib.request.urlopen(url).read()
+    soup = BeautifulSoup(html, 'html.parser')
+        
+    navigation = soup.find('div', class_='navigation nf-pagenavi')
+    for page_option in navigation.findAll('a'):
+        url = page_option['href']
+        urls.append(urljoin(base_url, url))
+        
+    # Not all urls were available from the first page - so get the rest from
+    # the last page
+    html = urllib.request.urlopen(urls[len(urls)-1]).read()
+    soup = BeautifulSoup(html, 'html.parser')
+    navigation = soup.find('div', class_='navigation nf-pagenavi')
+    for page_option in navigation.findAll('a'):
+        url = page_option['href']
+        urls.append(urljoin(base_url, url))
     
-# Not all urls were available from the first page - so get the rest from
-# the last page
-html = urllib.request.urlopen(urls[len(urls)-1]).read()
-soup = BeautifulSoup(html, 'html.parser')
-navigation = soup.find('div', class_='navigation nf-pagenavi')
-for page_option in navigation.findAll('a'):
-    url = page_option['href']
-    urls.append(urljoin(base_url, url))
-
-# Remove duplicates from urls
-no_duplicates_urls = set()
-new_urls = []
-
-for u in urls:
-  if u in no_duplicates_urls: continue
-  new_urls.append(u)
-  no_duplicates_urls.add(u)
-
-urls[:] = new_urls
+    # Remove duplicates from urls
+    no_duplicates_urls = set()
+    new_urls = []
     
-#%% Get all of the shows for all of the dates available on the site
+    for u in urls:
+      if u in no_duplicates_urls: continue
+      new_urls.append(u)
+      no_duplicates_urls.add(u)
+    
+    urls[:] = new_urls
+    return urls
+    
+# Get all of the shows for all of the dates available on the site
+def write_all_shows(urls):
+    all_shows = []
+    shows_unflat = []
+    for url in urls:
+        shows_unflat.append(extract_data(url))
+    
+    all_shows = [item for sublist in shows_unflat for item in sublist]
+    
+    # Save all_shows as a set of json documents
+    with open('carolines_shows.json', 'w') as f:
+        json.dump(all_shows, f, indent=4)
+    print('Wrote carolines_shows.json')
 
-all_shows = []
-shows_unflat = []
-for url in urls:
-    shows_unflat.append(extract_data(url))
-
-all_shows = [item for sublist in shows_unflat for item in sublist]
-
-#%% Save all_shows as a set of json documents
-with open('carolines_shows.json', 'w') as f:
-    json.dump(all_shows, f, indent=4)
+if __name__ == '__main__':
+    urls = get_all_urls()
+    write_all_shows(urls)
